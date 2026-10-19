@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>清理关注</title>
+    <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+    <link rel="stylesheet" href="window.css">
+    <script type="module" src="window.js"></script>
+  </head>
+  <body>
+    <main class="app" id="app" data-phase="idle">
+      <div id="demo-banner" class="demo-banner" hidden>界面预览 · 不操作 X</div>
+      <header class="header">
+        <div class="heading-line">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 28 28" fill="none"><path d="M7 8h6M7 14h10M7 20h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m18 18 2 2 4-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <h1>清理关注</h1>
+        </div>
+      </header>
+
+      <section class="account" aria-label="当前 X 账号">
+        <span class="account-symbol" aria-hidden="true">@</span>
+        <div class="account-info">
+          <strong id="account-name">尚未连接 X</strong>
+          <span id="account-note">连接后确认当前账号</span>
+        </div>
+        <button id="connect-button" type="button" class="button-small">连接</button>
+      </section>
+
+      <form id="clean-form" novalidate>
+        <div id="scope-summary" class="scope-summary" hidden>
+          <span class="scope-summary-label">范围</span>
+          <strong id="scope-summary-value">全部关注</strong>
+          <button id="edit-scope-button" class="text-button" type="button">修改范围</button>
+        </div>
+        <fieldset id="scope-fields" class="scope-fields">
+          <legend>清理范围</legend>
+          <div class="segmented" id="scope-switch">
+            <span class="selection-pill" aria-hidden="true"></span>
+            <label class="segment">
+              <input type="radio" name="scope" value="all" checked>
+              <span>全部关注</span>
+            </label>
+            <label class="segment">
+              <input type="radio" name="scope" value="custom">
+              <span>指定起点</span>
+            </label>
+          </div>
+          <div id="boundary-region" class="boundary-region" hidden>
+          <div id="boundary-fields" class="boundary-fields">
+            <div class="field">
+              <label for="boundary-input">起点账号</label>
+              <div class="handle-input">
+                <span aria-hidden="true">@</span>
+                <input id="boundary-input" name="boundary" type="text" maxlength="16" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="用户名" aria-describedby="boundary-hint boundary-error">
+              </div>
+            </div>
+            <div class="field">
+              <span id="direction-label" class="field-label">处理方向</span>
+              <div id="direction-switch" class="direction-switch" role="radiogroup" aria-labelledby="direction-label" aria-describedby="boundary-hint">
+                <span class="direction-pill" aria-hidden="true"></span>
+                <label class="direction-option">
+                  <input type="radio" name="direction" value="newer" aria-label="向上 · 较新" checked>
+                  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 12V4m-3 3 3-3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  <span>较新关注</span>
+                </label>
+                <label class="direction-option">
+                  <input type="radio" name="direction" value="older" aria-label="向下 · 较早">
+                  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 4v8m-3-3 3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  <span>较早关注</span>
+                </label>
+              </div>
+            </div>
+            <p id="boundary-error" class="field-error" hidden></p>
+            <p id="boundary-hint" class="hint">包含起点，按关注列表顺序处理较新的一侧。</p>
+          </div>
+          </div>
+        </fieldset>
+
+        <p class="preserve-note"><span class="check-dot" aria-hidden="true">✓</span>互关会保留，蓝 V 与普通账号规则相同</p>
+        <div id="notice" class="notice" role="status" hidden></div>
+        <div id="error-message" class="error-message" role="alert" hidden></div>
+
+        <button id="primary-button" class="primary-button" type="submit" disabled>
+          <svg id="primary-icon" class="primary-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 6h8M4 10h6M4 14h5m4-2 2 2 3-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="primary-label">清理未回关</span>
+        </button>
+        <div class="secondary-actions">
+          <button id="check-button" class="text-button" type="button" disabled>仅检查（不取关）</button>
+          <button id="stop-button" class="text-button stop-button" type="button" hidden>停止本次清理</button>
+        </div>
+      </form>
+
+      <section id="progress-panel" class="progress-panel" aria-label="任务进度" hidden>
+        <div class="progress-heading">
+          <span class="phase-label"><span id="phase-dot" class="phase-dot" aria-hidden="true"></span><strong id="phase-name">正在检查</strong></span>
+          <span id="run-kind" class="run-kind">仅检查</span>
+        </div>
+        <div id="progress-track" class="progress-track" aria-hidden="true"><span></span></div>
+        <p id="run-message" class="run-message" role="status" aria-live="polite"></p>
+        <div class="counters">
+          <div><strong id="count-scanned">0</strong><span>已检查</span></div>
+          <div><strong id="count-kept">0</strong><span>已保留</span></div>
+          <div><strong id="count-removed">0</strong><span id="removed-label">已清理</span></div>
+        </div>
+        <p id="unconfirmed-note" class="unconfirmed-note" hidden></p>
+        <details id="details-panel" class="details-panel">
+          <summary><span>查看处理记录</span><span id="log-count" class="log-count">0 条</span></summary>
+          <ol id="log-list" class="log-list"></ol>
+          <button id="export-button" type="button" class="text-button export-button">导出结果</button>
+        </details>
+      </section>
+      <footer class="footer"><span id="footer-text">记录仅保存在本机</span><button id="focus-x-button" type="button" class="text-button" hidden>查看 X ↗</button></footer>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "关注清理 · X Follow Cleaner",
+  "version": "0.1.2",
+  "description": "保留互关，只清理未回关。全部或指定账号范围，在浏览器中本地运行。",
+  "minimum_chrome_version": "120",
+  "permissions": ["storage", "scripting"],
+  "host_permissions": ["https://x.com/*", "https://www.x.com/*"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": { "default_title": "打开关注清理", "default_popup": "window.html", "default_icon": {"16": "icons/icon-16.png", "32": "icons/icon-32.png"} },
+  "icons": {"16": "icons/icon-16.png", "32": "icons/icon-32.png", "48": "icons/icon-48.png", "128": "icons/icon-128.png"},
+  "content_scripts": [{
+    "matches": ["https://x.com/*", "https://www.x.com/*"],
+    "js": ["core.js", "runner.js"],
+    "run_at": "document_idle"
+  }],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none'"
+  }
+}

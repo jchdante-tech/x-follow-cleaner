@@ -1,0 +1,13 @@
+{
+  "name": "x-follow-cleaner",
+  "version": "0.1.2",
+  "private": true,
+  "type": "module",
+  "description": "本地运行的 X 未回关清理浏览器扩展",
+  "license": "MIT",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test",
+    "package": "node scripts/package.mjs"
+  }
+}
