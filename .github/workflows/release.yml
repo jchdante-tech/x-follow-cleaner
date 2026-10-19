@@ -1,0 +1,63 @@
+name: Test, package and release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - extension/manifest.json
+      - .github/workflows/release.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+      - name: Run unit tests
+        run: node --test
+      - name: Build the reviewed installation ZIP
+        run: node scripts/package.mjs
+      - name: Read version and write checksum
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync, appendFileSync } from 'node:fs';
+          import { createHash } from 'node:crypto';
+          const { version } = JSON.parse(readFileSync('extension/manifest.json', 'utf8'));
+          if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error('Invalid release version');
+          const file = `x-follow-cleaner-v${version}.zip`;
+          const hash = createHash('sha256').update(readFileSync(`dist/${file}`)).digest('hex');
+          writeFileSync('dist/SHA256SUMS.txt', `${hash}  ${file}\n`);
+          appendFileSync(process.env.GITHUB_ENV, `RELEASE_VERSION=${version}\n`);
+          NODE
+      - name: Publish a new test release without replacing existing assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag="v${RELEASE_VERSION}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag already exists; assets are unchanged."
+            exit 0
+          fi
+          gh release create "$tag" \
+            "dist/x-follow-cleaner-${tag}.zip" \
+            dist/SHA256SUMS.txt \
+            --target "$GITHUB_SHA" \
+            --title "X Follow Cleaner $tag" \
+            --notes-file RELEASE_NOTES.md \
+            --prerelease
