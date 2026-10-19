@@ -1,0 +1,11 @@
+node_modules/
+dist/
+output/
+.playwright-cli/
+.DS_Store
+*.log
+.env
+.env.*
+*.local
+# Local design and research notes are not release material.
+design-spec.md
